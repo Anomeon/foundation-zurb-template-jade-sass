@@ -4,6 +4,7 @@ import plugins  from 'gulp-load-plugins';
 import yargs    from 'yargs';
 import browser  from 'browser-sync';
 import gulp     from 'gulp';
+import jade     from 'gulp-jade';
 import panini   from 'panini';
 import rimraf   from 'rimraf';
 import sherpa   from 'style-sherpa';
@@ -45,24 +46,30 @@ function copy() {
     .pipe(gulp.dest(PATHS.dist + '/assets'));
 }
 
-// Copy page templates into finished HTML files
 function pages() {
-  return gulp.src('src/pages/**/*.{html,hbs,handlebars}')
-    .pipe(panini({
-      root: 'src/pages/',
-      layouts: 'src/layouts/',
-      partials: 'src/partials/',
-      data: 'src/data/',
-      helpers: 'src/helpers/'
-    }))
+  return gulp.src('src/pages/**/*.jade')
+    .pipe(jade())
     .pipe(gulp.dest(PATHS.dist));
 }
 
-// Load updated HTML templates and partials into Panini
-function resetPages(done) {
-  panini.refresh();
-  done();
-}
+// // Copy page templates into finished HTML files
+// function pages() {
+//   return gulp.src('src/pages/**/*.{html,hbs,handlebars}')
+//     .pipe(panini({
+//       root: 'src/pages/',
+//       layouts: 'src/layouts/',
+//       partials: 'src/partials/',
+//       data: 'src/data/',
+//       helpers: 'src/helpers/'
+//     }))
+//     .pipe(gulp.dest(PATHS.dist));
+// }
+
+// // Load updated HTML templates and partials into Panini
+// function resetPages(done) {
+//   panini.refresh();
+//   done();
+// }
 
 // Generate a style guide from the Markdown content and HTML template in styleguide/
 function styleGuide(done) {
@@ -75,7 +82,7 @@ function styleGuide(done) {
 // Compile Sass into CSS
 // In production, the CSS is compressed
 function sass() {
-  return gulp.src('src/assets/scss/app.scss')
+  return gulp.src('src/assets/scss/app.{scss,sass}')
     .pipe($.sourcemaps.init())
     .pipe($.sass({
       includePaths: PATHS.sass
@@ -126,9 +133,11 @@ function server(done) {
 // Watch for changes to static assets, pages, Sass, and JavaScript
 function watch() {
   gulp.watch(PATHS.assets, copy);
-  gulp.watch('src/pages/**/*.html').on('change', gulp.series(pages, browser.reload));
-  gulp.watch('src/{layouts,partials}/**/*.html').on('change', gulp.series(resetPages, pages, browser.reload));
-  gulp.watch('src/assets/scss/**/*.scss', sass);
+  // gulp.watch('src/pages/**/*.html').on('change', gulp.series(pages, browser.reload));
+  gulp.watch('src/pages/**/*.jade').on('change', gulp.series(pages, browser.reload));
+  // gulp.watch('src/{layouts,partials}/**/*.html').on('change', gulp.series(resetPages, pages, browser.reload));
+  gulp.watch('src/{layouts,partials}/**/*.jade').on('change', gulp.series(pages, browser.reload));
+  gulp.watch('src/assets/scss/**/*.{scss,sass}', sass);
   gulp.watch('src/assets/js/**/*.js').on('change', gulp.series(javascript, browser.reload));
   gulp.watch('src/assets/img/**/*').on('change', gulp.series(images, browser.reload));
   gulp.watch('src/styleguide/**').on('change', gulp.series(styleGuide, browser.reload));
