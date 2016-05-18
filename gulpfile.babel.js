@@ -46,9 +46,11 @@ function copy() {
     .pipe(gulp.dest(PATHS.dist + '/assets'));
 }
 
+var jsonConfig = require('./src/data/data.json')
+
 function pages() {
   return gulp.src('src/pages/**/*.jade')
-    .pipe(jade())
+    .pipe(jade({locals: jsonConfig}))
     .pipe(gulp.dest(PATHS.dist));
 }
 
